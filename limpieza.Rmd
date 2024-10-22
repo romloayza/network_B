@@ -1,0 +1,58 @@
+```{r}
+library(rio)
+```
+```{r}
+dist_obra = import('distritos_lima_final.xlsx')
+```
+```{r}
+str(dist_obra)
+```
+
+```{r}
+install.packages("readxl")
+install.packages("dplyr")
+
+library(readxl)
+library(dplyr)
+
+
+# Convierte a una matriz donde las filas sean distritos y las columnas sean las empresas
+matriz_distritos_empresas <- as.data.frame(dist_obra)
+
+# Obtiene los nombres de las empresas (columnas)
+empresas <- colnames(matriz_distritos_empresas)[-1]  # Se asume que la primera columna son los distritos
+
+# Crea una matriz vacía para las co-ocurrencias
+matriz_coocurrencias <- matrix(0, nrow = length(empresas), ncol = length(empresas))
+colnames(matriz_coocurrencias) <- empresas
+rownames(matriz_coocurrencias) <- empresas
+
+# Itera sobre cada fila (distrito) para contar las co-ocurrencias
+for (i in 1:nrow(matriz_distritos_empresas)) {
+  # Selecciona las empresas que hicieron obras en el distrito (frecuencia > 0)
+  empresas_en_distrito <- empresas[matriz_distritos_empresas[i, -1] > 0]
+  
+  # Genera todos los pares posibles de empresas que coincidieron en ese distrito
+  if (length(empresas_en_distrito) > 1) {
+    for (j in 1:(length(empresas_en_distrito) - 1)) {
+      for (k in (j + 1):length(empresas_en_distrito)) {
+        empresa1 <- empresas_en_distrito[j]
+        empresa2 <- empresas_en_distrito[k]
+        
+        # Suma 1 a las celdas correspondientes para el par de empresas
+        matriz_coocurrencias[empresa1, empresa2] <- matriz_coocurrencias[empresa1, empresa2] + 1
+        matriz_coocurrencias[empresa2, empresa1] <- matriz_coocurrencias[empresa2, empresa1] + 1
+      }
+    }
+  }
+}
+
+# Convierte la matriz a un data fram
+constructores <- as.data.frame(matriz_coocurrencias)
+
+```
+
+```{r}
+write.csv(constructores, "bob_el_corrupto.csv")
+```
+
